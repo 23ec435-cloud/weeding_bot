@@ -2,6 +2,10 @@
 weed_detection.py
 Runs YOLOv8 best.pt model on Pi Cam 3 and displays live detections.
 
+Model classes:
+  - weed  → red bounding box  (spray target)
+  - plant → green bounding box (leave alone)
+
 Camera:  0 (left) or 1 (right) — set CAMERA_NUM below
 Press 'q' to quit.
 """
@@ -24,14 +28,27 @@ TARGET_FPS    = 8                     # cap inference rate (Pi can't sustain ful
 INFERENCE_SIZE = 320                  # YOLO input size — smaller = much faster on CPU
 # --------------
 
-# Colours per class index (BGR)
-COLOURS = [
-    (0, 255, 0),    # class 0 — green
-    (0, 0, 255),    # class 1 — red
-    (255, 0, 0),    # class 2 — blue
-    (0, 255, 255),  # class 3 — yellow
-    (255, 0, 255),  # class 4 — magenta
-]
+# Class names the model uses for weeds (spray targets) — lowercase for matching
+WEED_CLASS_NAMES = {"weed", "weeds"}
+
+# BGR colours keyed by whether the detection is a weed or a plant
+COLOUR_WEED  = (0, 0, 255)    # red   — weed: spray target
+COLOUR_PLANT = (0, 255, 0)    # green — plant: leave alone
+COLOUR_OTHER = (255, 0, 255)  # magenta — unknown class fallback
+
+
+def get_class_colour(class_name: str) -> tuple:
+    """Return BGR colour based on whether the class is a weed or plant."""
+    name = class_name.lower()
+    if name in WEED_CLASS_NAMES:
+        return COLOUR_WEED
+    if "plant" in name or "crop" in name:
+        return COLOUR_PLANT
+    return COLOUR_OTHER
+
+
+def is_weed(class_name: str) -> bool:
+    return class_name.lower() in WEED_CLASS_NAMES
 
 
 class CameraCapture:
