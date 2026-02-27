@@ -110,19 +110,23 @@ def main():
     print(f"Classes: {model.names}")
 
     print(f"Starting camera {CAMERA_NUM}...")
-    capture = CameraCapture(CAMERA_NUM, FRAME_WIDTH, FRAME_HEIGHT)
+    capture = CameraCapture(CAMERA_NUM, FRAME_WIDTH, FRAME_HEIGHT, TARGET_FPS)
     print("Running — press 'q' to quit.")
 
     prev_time = time.time()
+    frame_interval = 1.0 / TARGET_FPS
 
     try:
         while True:
+            loop_start = time.time()
+
             frame_rgb = capture.read()
             if frame_rgb is None:
+                time.sleep(0.05)
                 continue                          # camera not ready yet
 
-            # Run YOLOv8 inference (model expects RGB)
-            results = model(frame_rgb, verbose=False)
+            # Run YOLOv8 inference at reduced size — much lighter on CPU
+            results = model(frame_rgb, imgsz=INFERENCE_SIZE, verbose=False)
 
             # Convert to BGR for OpenCV display
             frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
