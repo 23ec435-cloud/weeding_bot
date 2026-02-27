@@ -21,10 +21,10 @@ def main():
     cam1 = Picamera2(camera_num=1)
 
     config0 = cam0.create_preview_configuration(
-        main={"size": (FRAME_WIDTH, FRAME_HEIGHT), "format": "RGB888"}
+        main={"size": (FRAME_WIDTH, FRAME_HEIGHT), "format": "BGR888"}
     )
     config1 = cam1.create_preview_configuration(
-        main={"size": (FRAME_WIDTH, FRAME_HEIGHT), "format": "RGB888"}
+        main={"size": (FRAME_WIDTH, FRAME_HEIGHT), "format": "BGR888"}
     )
 
     cam0.configure(config0)
