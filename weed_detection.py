@@ -153,16 +153,16 @@ def main():
         while True:
             loop_start = time.time()
 
-            frame_rgb = capture.read()
-            if frame_rgb is None:
+            frame_bgr = capture.read()
+            if frame_bgr is None:
                 time.sleep(0.05)
                 continue                          # camera not ready yet
 
-            # Run YOLOv8 inference at reduced size — much lighter on CPU
+            # YOLO expects RGB — convert BGR→RGB just for inference
+            frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
             results = model(frame_rgb, imgsz=INFERENCE_SIZE, verbose=False)
 
-            # Convert to BGR for OpenCV display
-            frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
+            # Draw detections directly on the BGR frame (correct for cv2.imshow)
             frame_bgr, weed_boxes = draw_detections(frame_bgr, results)
 
             # Log weed detections (replace with serial spray command later)
