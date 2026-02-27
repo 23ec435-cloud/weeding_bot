@@ -114,8 +114,6 @@ def main():
     print("Running — press 'q' to quit.")
 
     prev_time = time.time()
-    frame_interval = 1.0 / TARGET_FPS
-
     try:
         while True:
             loop_start = time.time()
@@ -133,16 +131,19 @@ def main():
             frame_bgr = draw_detections(frame_bgr, results)
 
             # Real FPS overlay
-            now      = time.time()
-            fps      = 1.0 / max(now - prev_time, 1e-9)
+            now       = time.time()
+            fps       = 1.0 / max(now - prev_time, 1e-9)
             prev_time = now
-            fps_text = f"Cam {CAMERA_NUM} | {fps:.1f} FPS | conf>{CONF_THRESH}"
+            fps_text  = f"Cam {CAMERA_NUM} | {fps:.1f} FPS | conf>{CONF_THRESH}"
             cv2.putText(frame_bgr, fps_text, (10, 20),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
             cv2.imshow("Weed Detection", frame_bgr)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            # Cap the loop to TARGET_FPS — gives CPU breathing room
+            elapsed = time.time() - loop_start
+            wait_ms = max(1, int((1.0 / TARGET_FPS - elapsed) * 1000))
+            if cv2.waitKey(wait_ms) & 0xFF == ord('q'):
                 break
 
     finally:
