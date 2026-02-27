@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Model weights (large files)
+*.pt
+*.pth
+*.onnx
+*.tflite
+
+# Logs and outputs
+*.log
+logs/
+runs/
+output/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets / config with credentials
+*.env
+secrets.py
+
+# Claude internal
+.claude/
