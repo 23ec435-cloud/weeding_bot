@@ -29,9 +29,11 @@ INFERENCE_SIZE = 320                  # YOLO input size — smaller = much faste
 # --------------
 
 # Class names the model uses for weeds (spray targets) — lowercase for matching
-WEED_CLASS_NAMES = {"weed", "weeds"}
+# Model trained with red=weed, green=plant so class names may be "red"/"green"
+WEED_CLASS_NAMES  = {"weed", "weeds", "red"}
+PLANT_CLASS_NAMES = {"plant", "plants", "crop", "crops", "green"}
 
-# BGR colours keyed by whether the detection is a weed or a plant
+# BGR colours
 COLOUR_WEED  = (0, 0, 255)    # red   — weed: spray target
 COLOUR_PLANT = (0, 255, 0)    # green — plant: leave alone
 COLOUR_OTHER = (255, 0, 255)  # magenta — unknown class fallback
@@ -42,7 +44,7 @@ def get_class_colour(class_name: str) -> tuple:
     name = class_name.lower()
     if name in WEED_CLASS_NAMES:
         return COLOUR_WEED
-    if "plant" in name or "crop" in name:
+    if name in PLANT_CLASS_NAMES:
         return COLOUR_PLANT
     return COLOUR_OTHER
 
