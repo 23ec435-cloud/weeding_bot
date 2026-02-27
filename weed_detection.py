@@ -52,11 +52,19 @@ class CameraCapture:
         self._thread = threading.Thread(target=self._loop, daemon=True)
         self._thread.start()
 
+    def __init__(self, camera_num, width, height, fps):
+        self._target_interval = 1.0 / fps
+
     def _loop(self):
         while not self._stop:
+            t0 = time.time()
             frame = self.cam.capture_array()
             with self._lock:
                 self._frame = frame
+            elapsed = time.time() - t0
+            sleep_for = self._target_interval - elapsed
+            if sleep_for > 0:
+                time.sleep(sleep_for)
 
     def read(self):
         """Return the most recent frame (or None if not ready yet)."""
