@@ -20,7 +20,7 @@ def main():
 
     cam = Picamera2(camera_num=cam_index)
     config = cam.create_preview_configuration(
-        main={"size": (FRAME_WIDTH, FRAME_HEIGHT), "format": "RGB888"}
+        main={"size": (FRAME_WIDTH, FRAME_HEIGHT), "format": "BGR888"}
     )
     cam.configure(config)
     cam.start()
@@ -28,15 +28,12 @@ def main():
 
     try:
         while True:
-            frame = cam.capture_array()   # shape: (H, W, 3) RGB
+            frame = cam.capture_array()   # shape: (H, W, 3) BGR — ready for OpenCV
 
-            # Convert RGB -> BGR for OpenCV display
-            frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-
-            cv2.putText(frame_bgr, f"Camera {cam_index}", (10, 30),
+            cv2.putText(frame, f"Camera {cam_index}", (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
 
-            cv2.imshow(f"Pi Cam {cam_index} Preview (press q to quit)", frame_bgr)
+            cv2.imshow(f"Pi Cam {cam_index} Preview (press q to quit)", frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
