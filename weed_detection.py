@@ -38,7 +38,7 @@ class CameraCapture:
     """Background thread that continuously captures frames so the main loop
     never blocks waiting for the camera."""
 
-    def __init__(self, camera_num, width, height):
+    def __init__(self, camera_num, width, height, fps):
         self.cam = Picamera2(camera_num=camera_num)
         self.cam.configure(self.cam.create_preview_configuration(
             main={"size": (width, height), "format": "RGB888"}
@@ -48,12 +48,10 @@ class CameraCapture:
         self._frame = None
         self._lock  = threading.Lock()
         self._stop  = False
+        self._target_interval = 1.0 / fps
 
         self._thread = threading.Thread(target=self._loop, daemon=True)
         self._thread.start()
-
-    def __init__(self, camera_num, width, height, fps):
-        self._target_interval = 1.0 / fps
 
     def _loop(self):
         while not self._stop:
