@@ -158,13 +158,21 @@ def main():
 
             # Convert to BGR for OpenCV display
             frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
-            frame_bgr = draw_detections(frame_bgr, results)
+            frame_bgr, weed_boxes = draw_detections(frame_bgr, results)
+
+            # Log weed detections (replace with serial spray command later)
+            if weed_boxes:
+                print(f"[CAM {CAMERA_NUM}] WEED detected: {len(weed_boxes)} target(s) — "
+                      + ", ".join(f"({x1},{y1},{x2},{y2}) conf={c:.2f}"
+                                  for x1, y1, x2, y2, c in weed_boxes))
 
             # Real FPS overlay
             now       = time.time()
             fps       = 1.0 / max(now - prev_time, 1e-9)
             prev_time = now
-            fps_text  = f"Cam {CAMERA_NUM} | {fps:.1f} FPS | conf>{CONF_THRESH}"
+            weed_count = len(weed_boxes)
+            fps_text  = (f"Cam {CAMERA_NUM} | {fps:.1f} FPS | conf>{CONF_THRESH} | "
+                         f"Weeds: {weed_count}")
             cv2.putText(frame_bgr, fps_text, (10, 20),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
