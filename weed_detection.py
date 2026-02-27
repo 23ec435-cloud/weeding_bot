@@ -93,7 +93,14 @@ class CameraCapture:
 
 
 def draw_detections(frame, results):
-    """Draw bounding boxes and labels onto the frame."""
+    """Draw bounding boxes and labels onto the frame.
+
+    Returns:
+        frame: annotated frame
+        weed_boxes: list of (x1, y1, x2, y2, conf) for every weed detected
+    """
+    weed_boxes = []
+
     for result in results:
         for box in result.boxes:
             conf = float(box.conf[0])
@@ -102,23 +109,29 @@ def draw_detections(frame, results):
 
             cls_id = int(box.cls[0])
             label  = result.names[cls_id]
-            colour = COLOURS[cls_id % len(COLOURS)]
+            colour = get_class_colour(label)
+            weed   = is_weed(label)
 
             x1, y1, x2, y2 = map(int, box.xyxy[0])
 
-            # Bounding box
-            cv2.rectangle(frame, (x1, y1), (x2, y2), colour, 2)
+            if weed:
+                weed_boxes.append((x1, y1, x2, y2, conf))
+
+            # Bounding box (thicker for weeds to make them stand out)
+            thickness = 3 if weed else 2
+            cv2.rectangle(frame, (x1, y1), (x2, y2), colour, thickness)
 
             # Label background
-            text = f"{label} {conf:.2f}"
+            tag   = "WEED" if weed else label
+            text  = f"{tag} {conf:.2f}"
             (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 1)
             cv2.rectangle(frame, (x1, y1 - th - 6), (x1 + tw, y1), colour, -1)
 
             # Label text
             cv2.putText(frame, text, (x1, y1 - 4),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
 
-    return frame
+    return frame, weed_boxes
 
 
 def main():
