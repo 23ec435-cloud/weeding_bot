@@ -36,21 +36,17 @@ def main():
 
     try:
         while True:
-            frame0 = cam0.capture_array()   # shape: (H, W, 3) RGB
+            frame0 = cam0.capture_array()   # shape: (H, W, 3) BGR — ready for OpenCV
             frame1 = cam1.capture_array()
 
-            # Convert RGB -> BGR for OpenCV display
-            frame0_bgr = cv2.cvtColor(frame0, cv2.COLOR_RGB2BGR)
-            frame1_bgr = cv2.cvtColor(frame1, cv2.COLOR_RGB2BGR)
-
             # Add labels
-            cv2.putText(frame0_bgr, "Camera 0 - Left",  (10, 30),
+            cv2.putText(frame0, "Camera 0 - Left",  (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
-            cv2.putText(frame1_bgr, "Camera 1 - Right", (10, 30),
+            cv2.putText(frame1, "Camera 1 - Right", (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
 
             # Stack side by side
-            combined = np.hstack((frame0_bgr, frame1_bgr))
+            combined = np.hstack((frame0, frame1))
 
             cv2.imshow("Dual Pi Cam Preview (press q to quit)", combined)
 
