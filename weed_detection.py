@@ -60,7 +60,7 @@ class CameraCapture:
     def __init__(self, camera_num, width, height, fps):
         self.cam = Picamera2(camera_num=camera_num)
         self.cam.configure(self.cam.create_preview_configuration(
-            main={"size": (width, height), "format": "RGB888"}
+            main={"size": (width, height), "format": "BGR888"}
         ))
         self.cam.start()
 
