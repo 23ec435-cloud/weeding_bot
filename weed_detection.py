@@ -15,11 +15,13 @@ from ultralytics import YOLO
 from pathlib import Path
 
 # --- Config ---
-CAMERA_NUM   = 0                      # 0 = left cam, 1 = right cam
-FRAME_WIDTH  = 640
-FRAME_HEIGHT = 480
-CONF_THRESH  = 0.5                    # minimum confidence to show a detection
-MODEL_PATH   = Path(__file__).parent / "best.pt"
+CAMERA_NUM    = 0                     # 0 = left cam, 1 = right cam
+FRAME_WIDTH   = 416                   # reduced from 640 to lower camera load
+FRAME_HEIGHT  = 320                   # reduced from 480
+CONF_THRESH   = 0.5                   # minimum confidence to show a detection
+MODEL_PATH    = Path(__file__).parent / "best.pt"
+TARGET_FPS    = 8                     # cap inference rate (Pi can't sustain full speed)
+INFERENCE_SIZE = 320                  # YOLO input size — smaller = much faster on CPU
 # --------------
 
 # Colours per class index (BGR)
