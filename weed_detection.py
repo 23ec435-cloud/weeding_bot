@@ -140,6 +140,9 @@ def main():
     print(f"Loading model: {MODEL_PATH}")
     model = YOLO(str(MODEL_PATH))
     print(f"Classes: {model.names}")
+    for idx, name in model.names.items():
+        role = "WEED (spray)" if is_weed(name) else ("PLANT (skip)" if name.lower() in PLANT_CLASS_NAMES else "UNKNOWN")
+        print(f"  class {idx}: '{name}' → {role}")
 
     print(f"Starting camera {CAMERA_NUM}...")
     capture = CameraCapture(CAMERA_NUM, FRAME_WIDTH, FRAME_HEIGHT, TARGET_FPS)
