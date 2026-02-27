@@ -8,6 +8,8 @@ Press 'q' to quit.
 
 import cv2
 import numpy as np
+import threading
+import time
 from picamera2 import Picamera2
 from ultralytics import YOLO
 from pathlib import Path
@@ -28,6 +30,41 @@ COLOURS = [
     (0, 255, 255),  # class 3 — yellow
     (255, 0, 255),  # class 4 — magenta
 ]
+
+
+class CameraStream:
+    """Captures frames in a background thread so inference never stalls the camera."""
+
+    def __init__(self, camera_num, width, height):
+        self.cam = Picamera2(camera_num=camera_num)
+        self.cam.configure(self.cam.create_preview_configuration(
+            main={"size": (width, height), "format": "RGB888"}
+        ))
+        self._frame = None
+        self._lock  = threading.Lock()
+        self._stop  = threading.Event()
+        self._thread = threading.Thread(target=self._capture_loop, daemon=True)
+
+    def start(self):
+        self.cam.start()
+        self._thread.start()
+        return self
+
+    def _capture_loop(self):
+        while not self._stop.is_set():
+            frame = self.cam.capture_array()
+            with self._lock:
+                self._frame = frame
+
+    def read(self):
+        """Return a copy of the most recent frame, or None if not yet available."""
+        with self._lock:
+            return None if self._frame is None else self._frame.copy()
+
+    def stop(self):
+        self._stop.set()
+        self._thread.join(timeout=2)
+        self.cam.stop()
 
 
 def draw_detections(frame, results):
@@ -65,27 +102,37 @@ def main():
     print(f"Classes: {model.names}")
 
     print(f"Starting camera {CAMERA_NUM}...")
-    cam = Picamera2(camera_num=CAMERA_NUM)
-    cam.configure(cam.create_preview_configuration(
-        main={"size": (FRAME_WIDTH, FRAME_HEIGHT), "format": "RGB888"}
-    ))
-    cam.start()
+    stream = CameraStream(CAMERA_NUM, FRAME_WIDTH, FRAME_HEIGHT).start()
     print("Running — press 'q' to quit.")
+
+    fps_timer   = time.time()
+    frame_count = 0
+    fps         = 0.0
 
     try:
         while True:
-            frame_rgb = cam.capture_array()
+            frame_rgb = stream.read()
+            if frame_rgb is None:
+                continue
 
-            # Run YOLOv8 inference (model expects RGB, returns results)
+            # Run YOLOv8 inference (model expects RGB)
             results = model(frame_rgb, verbose=False)
 
             # Convert to BGR for OpenCV display
             frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
             frame_bgr = draw_detections(frame_bgr, results)
 
-            # FPS overlay
-            fps_text = f"Cam {CAMERA_NUM} | {FRAME_WIDTH}x{FRAME_HEIGHT} | conf>{CONF_THRESH}"
-            cv2.putText(frame_bgr, fps_text, (10, 20),
+            # Rolling FPS counter
+            frame_count += 1
+            elapsed = time.time() - fps_timer
+            if elapsed >= 1.0:
+                fps         = frame_count / elapsed
+                frame_count = 0
+                fps_timer   = time.time()
+
+            overlay = (f"Cam {CAMERA_NUM} | {FRAME_WIDTH}x{FRAME_HEIGHT} "
+                       f"| conf>{CONF_THRESH} | {fps:.1f} FPS")
+            cv2.putText(frame_bgr, overlay, (10, 20),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
             cv2.imshow("Weed Detection", frame_bgr)
@@ -94,7 +141,7 @@ def main():
                 break
 
     finally:
-        cam.stop()
+        stream.stop()
         cv2.destroyAllWindows()
         print("Stopped.")
 
